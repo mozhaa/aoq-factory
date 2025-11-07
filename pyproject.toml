@@ -15,4 +15,5 @@ members = [
 dev = [
     "pre-commit>=4.3.0",
     "ruff>=0.14.4",
+    "ty>=0.0.1a25",
 ]
