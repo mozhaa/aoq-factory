@@ -4,12 +4,16 @@ version = "0.1.0"
 description = "anime opening quiz factory"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
-
-[tool.uv.workspace]
-members = [
-    "server",
-    "shared",
+dependencies = [
+    "alembic[tz]>=1.17.1",
+    "cachetools>=6.2.1",
+    "fastapi[standard-no-fastapi-cloud-cli]>=0.121.0",
+    "greenlet>=3.2.4",
+    "httptools>=0.7.1",
+    "orjson>=3.11.4",
+    "pydantic-settings>=2.11.0",
+    "sqlalchemy>=2.0.44",
+    "uvtools>=0.2.0",
 ]
 
 [dependency-groups]
@@ -30,3 +34,26 @@ select = [
     "RUF",
     "FAST",
 ]
+
+[tool.alembic]
+output_encoding = "utf-8"
+path_separator = "os"
+script_location = "%(here)s/alembic"
+file_template = "%%(year)d_%%(month).2d_%%(day).2d_%%(slug)s"
+prepend_sys_path = [
+    "."
+]
+
+[[tool.alembic.post_write_hooks]]
+entrypoint = "ruff_format"
+executable = "ruff"
+name = "ruff_format"
+options = "format REVISION_SCRIPT_FILENAME"
+type = "exec"
+
+[[tool.alembic.post_write_hooks]]
+entrypoint = "ruff_check"
+executable = "ruff"
+name = "ruff_check"
+options = "check --fix REVISION_SCRIPT_FILENAME"
+type = "exec"

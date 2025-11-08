@@ -2,13 +2,6 @@ version = 1
 revision = 3
 requires-python = ">=3.13"
 
-[manifest]
-members = [
-    "aoq-factory",
-    "server",
-    "shared",
-]
-
 [[package]]
 name = "alembic"
 version = "1.17.1"
@@ -63,6 +56,17 @@ wheels = [
 name = "aoq-factory"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "alembic", extra = ["tz"] },
+    { name = "cachetools" },
+    { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
+    { name = "greenlet" },
+    { name = "httptools" },
+    { name = "orjson" },
+    { name = "pydantic-settings" },
+    { name = "sqlalchemy" },
+    { name = "uvtools" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -72,6 +76,17 @@ dev = [
 ]
 
 [package.metadata]
+requires-dist = [
+    { name = "alembic", extras = ["tz"], specifier = ">=1.17.1" },
+    { name = "cachetools", specifier = ">=6.2.1" },
+    { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = ">=0.121.0" },
+    { name = "greenlet", specifier = ">=3.2.4" },
+    { name = "httptools", specifier = ">=0.7.1" },
+    { name = "orjson", specifier = ">=3.11.4" },
+    { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "sqlalchemy", specifier = ">=2.0.44" },
+    { name = "uvtools", specifier = ">=0.2.0" },
+]
 
 [package.metadata.requires-dev]
 dev = [
@@ -116,6 +131,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/8e/76/744442bdd69caa50a5a1a3aa5df1c5264c1bbdd82d394aae96f263784fd1/astropy_iers_data-0.2025.11.3.0.38.37.tar.gz", hash = "sha256:e018a3efbb6a4e4ea5a5a2a73bb3575b0123f3643b415a7327ec1dbd169787dd", size = 1912788, upload-time = "2025-11-03T00:39:21.814Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9b/ab/c1b19e9b9ea27d1093b6e2957c0b978e99280ab440eaef78b34c0a994093/astropy_iers_data-0.2025.11.3.0.38.37-py3-none-any.whl", hash = "sha256:f7e6bf830d1c6d022abaf39739a9dc7e42ea912675113da921967fe9a87d1de4", size = 1969004, upload-time = "2025-11-03T00:39:19.899Z" },
+]
+
+[[package]]
+name = "cachetools"
+version = "6.2.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/7e/b975b5814bd36faf009faebe22c1072a1fa1168db34d285ef0ba071ad78c/cachetools-6.2.1.tar.gz", hash = "sha256:3f391e4bd8f8bf0931169baf7456cc822705f4e2a31f840d218f445b9a854201", size = 31325, upload-time = "2025-10-12T14:55:30.139Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/96/c5/1e741d26306c42e2bf6ab740b2202872727e0f606033c9dd713f8b93f5a8/cachetools-6.2.1-py3-none-any.whl", hash = "sha256:09868944b6dde876dfd44e1d47e18484541eaf12f26f29b7af91b26cc892d701", size = 11280, upload-time = "2025-10-12T14:55:28.382Z" },
 ]
 
 [[package]]
@@ -933,33 +957,6 @@ wheels = [
 ]
 
 [[package]]
-name = "server"
-version = "0.1.0"
-source = { virtual = "server" }
-dependencies = [
-    { name = "alembic", extra = ["tz"] },
-    { name = "fastapi", extra = ["standard-no-fastapi-cloud-cli"] },
-    { name = "greenlet" },
-    { name = "httptools" },
-    { name = "orjson" },
-    { name = "pydantic-settings" },
-    { name = "sqlalchemy" },
-    { name = "uvtools" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "alembic", extras = ["tz"], specifier = ">=1.17.1" },
-    { name = "fastapi", extras = ["standard-no-fastapi-cloud-cli"], specifier = ">=0.121.0" },
-    { name = "greenlet", specifier = ">=3.2.4" },
-    { name = "httptools", specifier = ">=0.7.1" },
-    { name = "orjson", specifier = ">=3.11.4" },
-    { name = "pydantic-settings", specifier = ">=2.11.0" },
-    { name = "sqlalchemy", specifier = ">=2.0.44" },
-    { name = "uvtools", specifier = ">=0.2.0" },
-]
-
-[[package]]
 name = "setuptools"
 version = "80.9.0"
 source = { registry = "https://pypi.org/simple" }
@@ -980,11 +977,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/7b/b1/19587742aad604f19
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3d/ea/ac2bf868899d0d2e82ef72d350d97a846110c709bacf2d968431576ca915/setuptools_scm-9.2.2-py3-none-any.whl", hash = "sha256:30e8f84d2ab1ba7cb0e653429b179395d0c33775d54807fc5f1dd6671801aef7", size = 62975, upload-time = "2025-10-19T22:08:04.007Z" },
 ]
-
-[[package]]
-name = "shared"
-version = "0.1.0"
-source = { editable = "shared" }
 
 [[package]]
 name = "shellingham"
