@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from server.config import get_settings
+from aoq_factory.config import get_settings
 
 
 @cached(cache={})
