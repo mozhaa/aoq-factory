@@ -31,3 +31,7 @@ class NoSuchLevel(AOQFactoryBaseException):
 
 class InvalidLevelValue(AOQFactoryBaseException):
     pass
+
+
+class InvalidCategory(AOQFactoryBaseException):
+    pass

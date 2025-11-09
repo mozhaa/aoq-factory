@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from aoq_factory.api.models.song import CreateSongRequest, SongResponse, UpdateSongRequest
 from aoq_factory.services import SongService
-from aoq_factory.services.exc import NoSuchAnime, NoSuchSong, SongAlreadyExists
+from aoq_factory.services.exc import InvalidCategory, NoSuchAnime, NoSuchSong, SongAlreadyExists
 
 router = APIRouter(prefix="/songs")
 
@@ -30,6 +30,8 @@ async def create(song_service: Annotated[SongService, Depends()], song: CreateSo
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Song already exists") from e
     except NoSuchAnime as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Anime not found") from e
+    except InvalidCategory as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid category") from e
 
 
 @router.put("/{song_id}", tags=["song"])
@@ -38,6 +40,8 @@ async def update(song_service: Annotated[SongService, Depends()], song_id: int, 
         await song_service.update(song_id, song)
     except NoSuchSong as e:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Song not found") from e
+    except InvalidCategory as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid category") from e
 
 
 @router.delete("/{song_id}", tags=["song"])

@@ -32,7 +32,7 @@ class TimingService:
 
     async def get_all(self) -> list[TimingResponse]:
         async with self.engine.async_session() as session:
-            timings = (await session.scalars(select(Timing))).all()
+            timings: list[Timing] = (await session.scalars(select(Timing))).all()
             session.expunge_all()
         return [
             TimingResponse(
@@ -47,7 +47,7 @@ class TimingService:
 
     async def get_one(self, timing_id: int) -> TimingResponse:
         async with self.engine.async_session() as session:
-            timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
+            timing: Timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
             if timing is None:
                 raise NoSuchTiming()
             session.expunge(timing)
@@ -61,7 +61,7 @@ class TimingService:
 
     async def update(self, timing_id: int, timing: UpdateTimingRequest) -> None:
         async with self.engine.async_session() as session:
-            db_timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
+            db_timing: Timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
             if db_timing is None:
                 raise NoSuchTiming()
 
@@ -76,7 +76,7 @@ class TimingService:
 
     async def delete(self, timing_id: int) -> None:
         async with self.engine.async_session() as session:
-            timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
+            timing: Timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
             if timing is None:
                 raise NoSuchTiming()
             await session.delete(timing)

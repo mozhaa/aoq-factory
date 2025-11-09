@@ -33,7 +33,7 @@ class AnimeService:
 
     async def get_all(self) -> list[AnimeResponse]:
         async with self.engine.async_session() as session:
-            animes = (await session.scalars(select(Anime))).all()
+            animes: list[Anime] = (await session.scalars(select(Anime))).all()
             session.expunge_all()
         return [
             AnimeResponse(
@@ -50,7 +50,7 @@ class AnimeService:
 
     async def get_one(self, mal_id: int) -> AnimeResponse:
         async with self.engine.async_session() as session:
-            anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
+            anime: Anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
             if anime is None:
                 raise NoSuchAnime()
             session.expunge(anime)
@@ -66,7 +66,7 @@ class AnimeService:
 
     async def update(self, mal_id: int, anime: UpdateAnimeRequest) -> None:
         async with self.engine.async_session() as session:
-            db_anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
+            db_anime: Anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
             if db_anime is None:
                 raise NoSuchAnime()
 
@@ -87,7 +87,7 @@ class AnimeService:
 
     async def delete(self, mal_id: int) -> None:
         async with self.engine.async_session() as session:
-            anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
+            anime: Anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
             if anime is None:
                 raise NoSuchAnime()
             await session.delete(anime)

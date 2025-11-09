@@ -31,7 +31,7 @@ class SourceService:
 
     async def get_all(self) -> list[SourceResponse]:
         async with self.engine.async_session() as session:
-            sources = (await session.scalars(select(Source))).all()
+            sources: list[Source] = (await session.scalars(select(Source))).all()
             session.expunge_all()
         return [
             SourceResponse(
@@ -47,7 +47,7 @@ class SourceService:
 
     async def get_one(self, source_id: int) -> SourceResponse:
         async with self.engine.async_session() as session:
-            source = await session.scalar(select(Source).where(Source.id == source_id))
+            source: Source = await session.scalar(select(Source).where(Source.id == source_id))
             if source is None:
                 raise NoSuchSource()
             session.expunge(source)
@@ -62,7 +62,7 @@ class SourceService:
 
     async def update(self, source_id: int, source: UpdateSourceRequest) -> None:
         async with self.engine.async_session() as session:
-            db_source = await session.scalar(select(Source).where(Source.id == source_id))
+            db_source: Source = await session.scalar(select(Source).where(Source.id == source_id))
             if db_source is None:
                 raise NoSuchSource()
 
@@ -79,7 +79,7 @@ class SourceService:
 
     async def delete(self, source_id: int) -> None:
         async with self.engine.async_session() as session:
-            source = await session.scalar(select(Source).where(Source.id == source_id))
+            source: Source = await session.scalar(select(Source).where(Source.id == source_id))
             if source is None:
                 raise NoSuchSource()
             await session.delete(source)

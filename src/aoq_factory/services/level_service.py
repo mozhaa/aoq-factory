@@ -33,7 +33,7 @@ class LevelService:
 
     async def get_all(self) -> list[LevelResponse]:
         async with self.engine.async_session() as session:
-            levels = (await session.scalars(select(Level))).all()
+            levels: list[Level] = (await session.scalars(select(Level))).all()
             session.expunge_all()
         return [
             LevelResponse(
@@ -47,7 +47,7 @@ class LevelService:
 
     async def get_one(self, level_id: int) -> LevelResponse:
         async with self.engine.async_session() as session:
-            level = await session.scalar(select(Level).where(Level.id == level_id))
+            level: Level = await session.scalar(select(Level).where(Level.id == level_id))
             if level is None:
                 raise NoSuchLevel()
             session.expunge(level)
@@ -60,7 +60,7 @@ class LevelService:
 
     async def update(self, level_id: int, level: UpdateLevelRequest) -> None:
         async with self.engine.async_session() as session:
-            db_level = await session.scalar(select(Level).where(Level.id == level_id))
+            db_level: Level = await session.scalar(select(Level).where(Level.id == level_id))
             if db_level is None:
                 raise NoSuchLevel()
 
@@ -73,7 +73,7 @@ class LevelService:
 
     async def delete(self, level_id: int) -> None:
         async with self.engine.async_session() as session:
-            level = await session.scalar(select(Level).where(Level.id == level_id))
+            level: Level = await session.scalar(select(Level).where(Level.id == level_id))
             if level is None:
                 raise NoSuchLevel()
             await session.delete(level)
