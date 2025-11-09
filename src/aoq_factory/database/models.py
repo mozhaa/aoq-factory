@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Any, ClassVar, List, Type
+from typing import Any, ClassVar, List, Optional, Type
 
 import sqlalchemy.types as types
 from sqlalchemy import ForeignKey, String, UniqueConstraint, func
@@ -29,9 +29,7 @@ convention: dict[str, str] = {
 
 class Base(AsyncAttrs, DeclarativeBase):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        server_default=func.now(), onupdate=func.now()
-    )
+    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     metadata: ClassVar[MetaData] = MetaData(naming_convention=convention)
     type_annotation_map: ClassVar[dict[Type, types.TypeEngine]] = {
@@ -61,14 +59,11 @@ class Anime(Base):
     poster_url: Mapped[str]
     poster_thumb_url: Mapped[str]
     release_year: Mapped[int]
-    blacklisted: Mapped[bool] = mapped_column(default=False)
+    is_blacklisted: Mapped[bool] = mapped_column(default=False)
+    is_finalized: Mapped[bool] = mapped_column(default=False)
 
-    infos: Mapped[List["AnimeInfo"]] = relationship(
-        back_populates="anime", cascade="all, delete"
-    )
-    songs: Mapped[List["Song"]] = relationship(
-        back_populates="anime", cascade="all, delete"
-    )
+    infos: Mapped[List["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
+    songs: Mapped[List["Song"]] = relationship(back_populates="anime", cascade="all, delete")
 
 
 class AnimeInfo(BaseWithID):
@@ -96,7 +91,18 @@ class Song(BaseWithID):
     song_name: Mapped[str] = mapped_column(default="")
 
     anime: Mapped[Anime] = relationship(back_populates="songs")
+    sources: Mapped[List["SongSource"]] = relationship(back_populates="song", cascade="all, delete")
 
-    __table_args__ = (
-        UniqueConstraint("anime_id", "category", "number", name="_category_number_uc"),
-    )
+    __table_args__ = (UniqueConstraint("anime_id", "category", "number"),)
+
+
+class SongSource(BaseWithID):
+    __tablename__ = "song_sources"
+
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"))
+    location: Mapped[dict[str, Any]]
+    local_path: Mapped[Optional[str]]
+    is_downloading: Mapped[bool] = mapped_column(default=False)
+    is_invalid: Mapped[bool] = mapped_column(default=False)
+
+    song: Mapped[Anime] = relationship(back_populates="sources")
