@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from sqlalchemy.engine import Connection
 
 from alembic import context
-from aoq_factory.database.connection import get_async_engine, get_url
+from aoq_factory.database.connection import get_engine, get_url
 from aoq_factory.database.models import Base
 
 # this is the Alembic Config object, which provides
@@ -63,7 +63,7 @@ async def run_async_migrations() -> None:
 
     """
 
-    connectable = get_async_engine(get_url(), echo=True)
+    connectable = get_engine(engine_kwargs={"echo": True}).engine
 
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)

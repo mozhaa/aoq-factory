@@ -1,7 +1,7 @@
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Optional
 
 from cachetools import cached
-from cachetools.keys import hashkey
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -13,11 +13,17 @@ from sqlalchemy.ext.asyncio import (
 from aoq_factory.config import get_settings
 
 
+@dataclass
+class Engine:
+    engine: AsyncEngine
+    async_session: async_sessionmaker[AsyncSession]
+
+
 @cached(cache={})
-def get_url(use_async: bool = True) -> URL:
+def get_url() -> URL:
     settings = get_settings()
     return URL.create(
-        drivername="postgresql+asyncpg" if use_async else "postgresql+psycopg2",
+        drivername="postgresql+asyncpg",
         database=settings.db_name,
         username=settings.db_username,
         password=settings.db_password,
@@ -26,13 +32,10 @@ def get_url(use_async: bool = True) -> URL:
     )
 
 
-@cached(cache={}, key=lambda url, **kwargs: hashkey(url))
-def get_async_engine(url: URL, **kwargs) -> AsyncEngine:
-    return create_async_engine(url, **kwargs)
-
-
-@cached(cache={}, key=lambda url, **kwargs: hashkey(url))
-def get_async_sessionmaker(
-    url: URL, engine_kwargs: dict[str, Any], **kwargs
-) -> async_sessionmaker[AsyncSession]:
-    return async_sessionmaker(bind=get_async_engine(url, **engine_kwargs), **kwargs)
+@cached(cache={})
+def get_engine(
+    engine_kwargs: Optional[dict[str, Any]] = None, session_kwargs: Optional[dict[str, Any]] = None
+) -> Engine:
+    engine = create_async_engine(get_url(), **(engine_kwargs or {}))
+    async_session = async_sessionmaker(bind=engine, **(session_kwargs or {}))
+    return Engine(engine, async_session)
