@@ -1,5 +1,10 @@
+import uvicorn
+
+from .app import app
+
+
 def main():
-    print("Hello from server!")
+    uvicorn.run(app)
 
 
 if __name__ == "__main__":
