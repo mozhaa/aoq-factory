@@ -106,3 +106,4 @@ def downgrade() -> None:
     op.drop_table("songs")
     op.drop_table("anime_infos")
     op.drop_table("animes")
+    sa.Enum("Opening", "Ending", name="category").drop(op.get_bind())
