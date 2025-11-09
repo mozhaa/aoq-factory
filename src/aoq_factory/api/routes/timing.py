@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from aoq_factory.api.models.timing import CreateTimingRequest, TimingResponse, UpdateTimingRequest
 from aoq_factory.services import TimingService
+from aoq_factory.services.exc import NoSuchSource, NoSuchTiming
 
 router = APIRouter(prefix="/timings")
 
@@ -15,30 +16,33 @@ async def get_all(timing_service: Annotated[TimingService, Depends()]) -> list[T
 
 @router.get("/{timing_id}", tags=["timing"])
 async def get_one(timing_service: Annotated[TimingService, Depends()], timing_id: int) -> TimingResponse:
-    timing = await timing_service.get_one(timing_id)
-    if not timing:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found")
-    return timing
+    try:
+        return await timing_service.get_one(timing_id)
+    except NoSuchTiming as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found") from e
 
 
 @router.post("", tags=["timing"], status_code=status.HTTP_201_CREATED)
 async def create(timing_service: Annotated[TimingService, Depends()], timing: CreateTimingRequest) -> None:
-    success = await timing_service.create(timing)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Timing already exists")
+    try:
+        await timing_service.create(timing)
+    except NoSuchSource as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Source not found") from e
 
 
 @router.put("/{timing_id}", tags=["timing"])
 async def update(
     timing_service: Annotated[TimingService, Depends()], timing_id: int, timing: UpdateTimingRequest
 ) -> None:
-    success = await timing_service.update(timing_id, timing)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found")
+    try:
+        await timing_service.update(timing_id, timing)
+    except NoSuchTiming as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found") from e
 
 
 @router.delete("/{timing_id}", tags=["timing"])
 async def delete(timing_service: Annotated[TimingService, Depends()], timing_id: int) -> None:
-    success = await timing_service.delete(timing_id)
-    if not success:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found")
+    try:
+        await timing_service.delete(timing_id)
+    except NoSuchTiming as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Timing not found") from e

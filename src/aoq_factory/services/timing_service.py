@@ -5,12 +5,14 @@ from aoq_factory.api.models.timing import CreateTimingRequest, TimingResponse, U
 from aoq_factory.database.models import Timing
 from aoq_factory.deps.engine import EngineDep
 
+from .exc import NoSuchSource, NoSuchTiming
+
 
 class TimingService:
     def __init__(self, engine: EngineDep):
         self.engine = engine
 
-    async def create(self, timing: CreateTimingRequest) -> bool:
+    async def create(self, timing: CreateTimingRequest) -> None:
         async with self.engine.async_session() as session:
             session.add(
                 Timing(
@@ -22,9 +24,11 @@ class TimingService:
             )
             try:
                 await session.commit()
-                return True
-            except IntegrityError:
-                return False
+            except IntegrityError as e:
+                error_str = str(e.orig).lower()
+                if "fk_timings_source_id_sources" in error_str:
+                    raise NoSuchSource() from e
+                raise
 
     async def get_all(self) -> list[TimingResponse]:
         async with self.engine.async_session() as session:
@@ -41,36 +45,34 @@ class TimingService:
             for timing in timings
         ]
 
-    async def get_one(self, timing_id: int) -> TimingResponse | None:
+    async def get_one(self, timing_id: int) -> TimingResponse:
         async with self.engine.async_session() as session:
             timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
-            if timing:
-                session.expunge(timing)
-                return TimingResponse(
-                    id=timing.id,
-                    source_id=timing.source_id,
-                    guess_start=timing.guess_start,
-                    reveal_start=timing.reveal_start,
-                    created_by=timing.created_by,
-                )
-            return None
+            if timing is None:
+                raise NoSuchTiming()
+            session.expunge(timing)
+        return TimingResponse(
+            id=timing.id,
+            source_id=timing.source_id,
+            guess_start=timing.guess_start,
+            reveal_start=timing.reveal_start,
+            created_by=timing.created_by,
+        )
 
-    async def update(self, timing_id: int, timing: UpdateTimingRequest) -> bool:
+    async def update(self, timing_id: int, timing: UpdateTimingRequest) -> None:
         async with self.engine.async_session() as session:
             db_timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
-            if not db_timing:
-                return False
+            if db_timing is None:
+                raise NoSuchTiming()
             db_timing.guess_start = timing.guess_start
             db_timing.reveal_start = timing.reveal_start
             db_timing.created_by = timing.created_by
             await session.commit()
-            return True
 
-    async def delete(self, timing_id: int) -> bool:
+    async def delete(self, timing_id: int) -> None:
         async with self.engine.async_session() as session:
             timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
-            if not timing:
-                return False
+            if timing is None:
+                raise NoSuchTiming()
             await session.delete(timing)
             await session.commit()
-            return True

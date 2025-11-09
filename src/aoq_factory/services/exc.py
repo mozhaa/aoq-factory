@@ -17,23 +17,11 @@ class NoSuchSong(AOQFactoryBaseException):
     pass
 
 
-class SourceAlreadyExists(AOQFactoryBaseException):
-    pass
-
-
 class NoSuchSource(AOQFactoryBaseException):
     pass
 
 
-class TimingAlreadyExists(AOQFactoryBaseException):
-    pass
-
-
 class NoSuchTiming(AOQFactoryBaseException):
-    pass
-
-
-class LevelAlreadyExists(AOQFactoryBaseException):
     pass
 
 
@@ -42,8 +30,4 @@ class NoSuchLevel(AOQFactoryBaseException):
 
 
 class InvalidLevelValue(AOQFactoryBaseException):
-    pass
-
-
-class UniqueConstraintViolation(AOQFactoryBaseException):
     pass

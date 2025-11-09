@@ -26,7 +26,10 @@ class AnimeService:
             try:
                 await session.commit()
             except IntegrityError as e:
-                raise AnimeAlreadyExists() from e
+                error_str = str(e.orig).lower()
+                if "pk_animes" in error_str:
+                    raise AnimeAlreadyExists() from e
+                raise
 
     async def get_all(self) -> list[AnimeResponse]:
         async with self.engine.async_session() as session:

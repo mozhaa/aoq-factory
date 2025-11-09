@@ -5,12 +5,14 @@ from aoq_factory.api.models.song import CreateSongRequest, SongResponse, UpdateS
 from aoq_factory.database.models import Song
 from aoq_factory.deps.engine import EngineDep
 
+from .exc import NoSuchAnime, NoSuchSong, SongAlreadyExists
+
 
 class SongService:
     def __init__(self, engine: EngineDep):
         self.engine = engine
 
-    async def create(self, song: CreateSongRequest) -> bool:
+    async def create(self, song: CreateSongRequest) -> None:
         async with self.engine.async_session() as session:
             session.add(
                 Song(
@@ -23,9 +25,13 @@ class SongService:
             )
             try:
                 await session.commit()
-                return True
-            except IntegrityError:
-                return False
+            except IntegrityError as e:
+                error_str = str(e.orig).lower()
+                if "uq_songs_anime_id" in error_str:
+                    raise SongAlreadyExists() from e
+                elif "fk_songs_anime_id_animes" in error_str:
+                    raise NoSuchAnime() from e
+                raise
 
     async def get_all(self) -> list[SongResponse]:
         async with self.engine.async_session() as session:
@@ -43,38 +49,36 @@ class SongService:
             for song in songs
         ]
 
-    async def get_one(self, song_id: int) -> SongResponse | None:
+    async def get_one(self, song_id: int) -> SongResponse:
         async with self.engine.async_session() as session:
             song = await session.scalar(select(Song).where(Song.id == song_id))
-            if song:
-                session.expunge(song)
-                return SongResponse(
-                    id=song.id,
-                    anime_id=song.anime_id,
-                    category=song.category,
-                    number=song.number,
-                    song_artist=song.song_artist,
-                    song_name=song.song_name,
-                )
-            return None
+            if song is None:
+                raise NoSuchSong()
+            session.expunge(song)
+        return SongResponse(
+            id=song.id,
+            anime_id=song.anime_id,
+            category=song.category,
+            number=song.number,
+            song_artist=song.song_artist,
+            song_name=song.song_name,
+        )
 
-    async def update(self, song_id: int, song: UpdateSongRequest) -> bool:
+    async def update(self, song_id: int, song: UpdateSongRequest) -> None:
         async with self.engine.async_session() as session:
             db_song = await session.scalar(select(Song).where(Song.id == song_id))
-            if not db_song:
-                return False
+            if db_song is None:
+                raise NoSuchSong()
             db_song.category = song.category
             db_song.number = song.number
             db_song.song_artist = song.song_artist
             db_song.song_name = song.song_name
             await session.commit()
-            return True
 
-    async def delete(self, song_id: int) -> bool:
+    async def delete(self, song_id: int) -> None:
         async with self.engine.async_session() as session:
             song = await session.scalar(select(Song).where(Song.id == song_id))
-            if not song:
-                return False
+            if song is None:
+                raise NoSuchSong()
             await session.delete(song)
             await session.commit()
-            return True
