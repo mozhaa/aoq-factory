@@ -42,6 +42,9 @@ select = [
     "FAST",
 ]
 
+[tool.ruff]
+line-length = 120
+
 [tool.alembic]
 output_encoding = "utf-8"
 path_separator = "os"
