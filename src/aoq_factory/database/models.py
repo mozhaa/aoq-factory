@@ -130,4 +130,4 @@ class Level(BaseWithID):
 
     song: Mapped[Song] = relationship(back_populates="levels")
 
-    __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),)
+    __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="value_range"),)

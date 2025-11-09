@@ -17,3 +17,12 @@ class AnimeResponse(BaseModel):
     release_year: int
     is_blacklisted: bool
     is_finalized: bool
+
+
+class UpdateAnimeRequest(BaseModel):
+    title_ro: str
+    poster_url: str
+    poster_thumb_url: str
+    release_year: int
+    is_blacklisted: bool
+    is_finalized: bool
