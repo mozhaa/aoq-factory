@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Any, ClassVar, List, Optional, Type
 
 import sqlalchemy.types as types
-from sqlalchemy import ForeignKey, String, UniqueConstraint, func
+from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -91,13 +91,14 @@ class Song(BaseWithID):
     song_name: Mapped[str] = mapped_column(default="")
 
     anime: Mapped[Anime] = relationship(back_populates="songs")
-    sources: Mapped[List["SongSource"]] = relationship(back_populates="song", cascade="all, delete")
+    sources: Mapped[List["Source"]] = relationship(back_populates="song", cascade="all, delete")
+    levels: Mapped[List["Level"]] = relationship(back_populates="song", cascade="all, delete")
 
     __table_args__ = (UniqueConstraint("anime_id", "category", "number"),)
 
 
-class SongSource(BaseWithID):
-    __tablename__ = "song_sources"
+class Source(BaseWithID):
+    __tablename__ = "sources"
 
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"))
     location: Mapped[dict[str, Any]]
@@ -106,3 +107,27 @@ class SongSource(BaseWithID):
     is_invalid: Mapped[bool] = mapped_column(default=False)
 
     song: Mapped[Anime] = relationship(back_populates="sources")
+    timings: Mapped[list["Timing"]] = relationship(back_populates="source", cascade="all, delete")
+
+
+class Timing(BaseWithID):
+    __tablename__ = "timings"
+
+    source_id: Mapped[int] = mapped_column(ForeignKey("sources.id"))
+    guess_start: Mapped[float]
+    reveal_start: Mapped[float]
+    created_by: Mapped[str]
+
+    source: Mapped[Source] = relationship(back_populates="timings")
+
+
+class Level(BaseWithID):
+    __tablename__ = "levels"
+
+    song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"))
+    value: Mapped[int]
+    created_by: Mapped[str]
+
+    song: Mapped[Song] = relationship(back_populates="levels")
+
+    __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="_value_range"),)
