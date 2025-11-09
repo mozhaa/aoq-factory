@@ -67,7 +67,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.CheckConstraint("value >= 0 AND value <= 100", name=op.f("ck_levels__value_range")),
+        sa.CheckConstraint("value >= 0 AND value <= 100", name=op.f("ck_levels_value_range")),
         sa.ForeignKeyConstraint(["song_id"], ["songs.id"], name=op.f("fk_levels_song_id_songs")),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_levels")),
     )

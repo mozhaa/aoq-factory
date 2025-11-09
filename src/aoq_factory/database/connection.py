@@ -19,7 +19,7 @@ class Engine:
     async_session: async_sessionmaker[AsyncSession]
 
 
-@cached(cache={})
+@cached(cache={}, key=lambda *args, **kwargs: ())
 def get_url() -> URL:
     settings = get_settings()
     return URL.create(
@@ -32,7 +32,7 @@ def get_url() -> URL:
     )
 
 
-@cached(cache={})
+@cached(cache={}, key=lambda *args, **kwargs: ())
 def get_engine(
     engine_kwargs: Optional[dict[str, Any]] = None, session_kwargs: Optional[dict[str, Any]] = None
 ) -> Engine:
