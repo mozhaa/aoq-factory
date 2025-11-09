@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -15,5 +17,5 @@ class LevelResponse(BaseModel):
 
 
 class UpdateLevelRequest(BaseModel):
-    value: int
-    created_by: str
+    value: Optional[int] = None
+    created_by: Optional[str] = None

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from aoq_factory.database.models import Category
@@ -5,7 +7,7 @@ from aoq_factory.database.models import Category
 
 class CreateSongRequest(BaseModel):
     anime_id: int
-    category: Category
+    category: Category  # TODO: accept category as str
     number: int
     song_artist: str
     song_name: str
@@ -21,7 +23,7 @@ class SongResponse(BaseModel):
 
 
 class UpdateSongRequest(BaseModel):
-    category: Category  # TODO: make nullable for partial update
-    number: int
-    song_artist: str
-    song_name: str
+    category: Optional[Category] = None
+    number: Optional[int] = None
+    song_artist: Optional[str] = None
+    song_name: Optional[str] = None

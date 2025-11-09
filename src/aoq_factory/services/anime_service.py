@@ -69,12 +69,20 @@ class AnimeService:
             db_anime = await session.scalar(select(Anime).where(Anime.mal_id == mal_id))
             if db_anime is None:
                 raise NoSuchAnime()
-            db_anime.title_ro = anime.title_ro
-            db_anime.poster_url = anime.poster_url
-            db_anime.poster_thumb_url = anime.poster_thumb_url
-            db_anime.release_year = anime.release_year
-            db_anime.is_blacklisted = anime.is_blacklisted
-            db_anime.is_finalized = anime.is_finalized
+
+            if anime.title_ro is not None:
+                db_anime.title_ro = anime.title_ro
+            if anime.poster_url is not None:
+                db_anime.poster_url = anime.poster_url
+            if anime.poster_thumb_url is not None:
+                db_anime.poster_thumb_url = anime.poster_thumb_url
+            if anime.release_year is not None:
+                db_anime.release_year = anime.release_year
+            if anime.is_blacklisted is not None:
+                db_anime.is_blacklisted = anime.is_blacklisted
+            if anime.is_finalized is not None:
+                db_anime.is_finalized = anime.is_finalized
+
             await session.commit()
 
     async def delete(self, mal_id: int) -> None:

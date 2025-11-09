@@ -69,10 +69,16 @@ class SongService:
             db_song = await session.scalar(select(Song).where(Song.id == song_id))
             if db_song is None:
                 raise NoSuchSong()
-            db_song.category = song.category
-            db_song.number = song.number
-            db_song.song_artist = song.song_artist
-            db_song.song_name = song.song_name
+
+            if song.category is not None:
+                db_song.category = song.category
+            if song.number is not None:
+                db_song.number = song.number
+            if song.song_artist is not None:
+                db_song.song_artist = song.song_artist
+            if song.song_name is not None:
+                db_song.song_name = song.song_name
+
             await session.commit()
 
     async def delete(self, song_id: int) -> None:

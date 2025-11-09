@@ -19,7 +19,7 @@ class SourceResponse(BaseModel):
 
 
 class UpdateSourceRequest(BaseModel):
-    location: dict[str, Any]
-    local_path: Optional[str]
-    is_downloading: bool
-    is_invalid: bool
+    location: Optional[dict[str, Any]] = None
+    local_path: Optional[str] = None
+    is_downloading: Optional[bool] = None
+    is_invalid: Optional[bool] = None

@@ -64,9 +64,14 @@ class TimingService:
             db_timing = await session.scalar(select(Timing).where(Timing.id == timing_id))
             if db_timing is None:
                 raise NoSuchTiming()
-            db_timing.guess_start = timing.guess_start
-            db_timing.reveal_start = timing.reveal_start
-            db_timing.created_by = timing.created_by
+
+            if timing.guess_start is not None:
+                db_timing.guess_start = timing.guess_start
+            if timing.reveal_start is not None:
+                db_timing.reveal_start = timing.reveal_start
+            if timing.created_by is not None:
+                db_timing.created_by = timing.created_by
+
             await session.commit()
 
     async def delete(self, timing_id: int) -> None:

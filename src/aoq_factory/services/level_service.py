@@ -63,8 +63,12 @@ class LevelService:
             db_level = await session.scalar(select(Level).where(Level.id == level_id))
             if db_level is None:
                 raise NoSuchLevel()
-            db_level.value = level.value
-            db_level.created_by = level.created_by
+
+            if level.value is not None:
+                db_level.value = level.value
+            if level.created_by is not None:
+                db_level.created_by = level.created_by
+
             await session.commit()
 
     async def delete(self, level_id: int) -> None:

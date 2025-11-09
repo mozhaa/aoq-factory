@@ -65,10 +65,16 @@ class SourceService:
             db_source = await session.scalar(select(Source).where(Source.id == source_id))
             if db_source is None:
                 raise NoSuchSource()
-            db_source.location = source.location
-            db_source.local_path = source.local_path
-            db_source.is_downloading = source.is_downloading
-            db_source.is_invalid = source.is_invalid
+
+            if source.location is not None:
+                db_source.location = source.location
+            if source.local_path is not None:
+                db_source.local_path = source.local_path
+            if source.is_downloading is not None:
+                db_source.is_downloading = source.is_downloading
+            if source.is_invalid is not None:
+                db_source.is_invalid = source.is_invalid
+
             await session.commit()
 
     async def delete(self, source_id: int) -> None:
