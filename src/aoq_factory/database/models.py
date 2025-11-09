@@ -106,7 +106,7 @@ class Source(BaseWithID):
     is_downloading: Mapped[bool] = mapped_column(default=False)
     is_invalid: Mapped[bool] = mapped_column(default=False)
 
-    song: Mapped[Anime] = relationship(back_populates="sources")
+    song: Mapped[Song] = relationship(back_populates="sources")
     timings: Mapped[list["Timing"]] = relationship(back_populates="source", cascade="all, delete")
 
 
