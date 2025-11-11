@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from aoq_factory.app.deps.engine import EngineDep
 from aoq_factory.database.models import Source
-from aoq_factory.deps.engine import EngineDep
 
 router = APIRouter(prefix="/sources")
 
@@ -52,7 +52,7 @@ async def get_all(engine: EngineDep) -> list[SourceResponse]:
 
 
 @router.get("/{source_id}", tags=["source"])
-async def get_one(engine: EngineDep, source_id: int) -> SourceResponse:
+async def get(engine: EngineDep, source_id: int) -> SourceResponse:
     async with engine.async_session() as session:
         source: Source = await session.scalar(select(Source).where(Source.id == source_id))
         if source is None:

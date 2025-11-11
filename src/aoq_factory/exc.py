@@ -1,2 +1,0 @@
-class AOQFactoryBaseException(Exception):
-    pass
