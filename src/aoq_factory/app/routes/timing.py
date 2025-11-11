@@ -15,7 +15,7 @@ class CreateTimingRequest(BaseModel):
     source_id: int
     guess_start: float
     reveal_start: float
-    created_by: str
+    added_by: str
 
 
 class TimingResponse(BaseModel):
@@ -23,13 +23,13 @@ class TimingResponse(BaseModel):
     source_id: int
     guess_start: float
     reveal_start: float
-    created_by: str
+    added_by: str
 
 
 class UpdateTimingRequest(BaseModel):
     guess_start: Optional[float] = None
     reveal_start: Optional[float] = None
-    created_by: Optional[str] = None
+    added_by: Optional[str] = None
 
 
 @router.get("", tags=["timing"])
@@ -43,7 +43,7 @@ async def get_all(engine: EngineDep) -> list[TimingResponse]:
             source_id=timing.source_id,
             guess_start=timing.guess_start,
             reveal_start=timing.reveal_start,
-            created_by=timing.created_by,
+            added_by=timing.added_by,
         )
         for timing in timings
     ]
@@ -61,7 +61,7 @@ async def get(engine: EngineDep, timing_id: int) -> TimingResponse:
         source_id=timing.source_id,
         guess_start=timing.guess_start,
         reveal_start=timing.reveal_start,
-        created_by=timing.created_by,
+        added_by=timing.added_by,
     )
 
 
@@ -73,7 +73,7 @@ async def create(engine: EngineDep, timing: CreateTimingRequest) -> None:
                 source_id=timing.source_id,
                 guess_start=timing.guess_start,
                 reveal_start=timing.reveal_start,
-                created_by=timing.created_by,
+                added_by=timing.added_by,
             )
         )
         try:
@@ -96,8 +96,8 @@ async def update(engine: EngineDep, timing_id: int, timing: UpdateTimingRequest)
             db_timing.guess_start = timing.guess_start
         if timing.reveal_start is not None:
             db_timing.reveal_start = timing.reveal_start
-        if timing.created_by is not None:
-            db_timing.created_by = timing.created_by
+        if timing.added_by is not None:
+            db_timing.added_by = timing.added_by
 
         await session.commit()
 

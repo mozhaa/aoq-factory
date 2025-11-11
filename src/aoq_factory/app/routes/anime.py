@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from aoq_factory.app.deps.engine import EngineDep
-from aoq_factory.database.models import Anime
+from aoq_factory.database.models import Anime, AnimeStatus
 
 router = APIRouter(prefix="/animes")
 
@@ -15,27 +15,23 @@ class CreateAnimeRequest(BaseModel):
     mal_id: int
     title_ro: str
     poster_url: str
-    poster_thumb_url: str
     release_year: int
+    status: Optional[str] = None
 
 
 class AnimeResponse(BaseModel):
     mal_id: int
     title_ro: str
     poster_url: str
-    poster_thumb_url: str
     release_year: int
-    is_blacklisted: bool
-    is_finalized: bool
+    status: str
 
 
 class UpdateAnimeRequest(BaseModel):
     title_ro: Optional[str] = None
     poster_url: Optional[str] = None
-    poster_thumb_url: Optional[str] = None
     release_year: Optional[int] = None
-    is_blacklisted: Optional[bool] = None
-    is_finalized: Optional[bool] = None
+    status: Optional[str] = None
 
 
 @router.get("", tags=["anime"])
@@ -48,10 +44,8 @@ async def get_all(engine: EngineDep) -> list[AnimeResponse]:
             mal_id=anime.mal_id,
             title_ro=anime.title_ro,
             poster_url=anime.poster_url,
-            poster_thumb_url=anime.poster_thumb_url,
             release_year=anime.release_year,
-            is_blacklisted=anime.is_blacklisted,
-            is_finalized=anime.is_finalized,
+            status=anime.status.name,
         )
         for anime in animes
     ]
@@ -68,23 +62,27 @@ async def get(engine: EngineDep, mal_id: int) -> AnimeResponse:
         mal_id=anime.mal_id,
         title_ro=anime.title_ro,
         poster_url=anime.poster_url,
-        poster_thumb_url=anime.poster_thumb_url,
         release_year=anime.release_year,
-        is_blacklisted=anime.is_blacklisted,
-        is_finalized=anime.is_finalized,
+        status=anime.status.name,
     )
 
 
 @router.post("", tags=["anime"], status_code=status.HTTP_201_CREATED)
 async def create(engine: EngineDep, anime: CreateAnimeRequest) -> None:
     async with engine.async_session() as session:
+        status_enum = AnimeStatus.NORMAL
+        if anime.status is not None:
+            if anime.status not in AnimeStatus.__members__:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status")
+            status_enum = AnimeStatus[anime.status]
+
         session.add(
             Anime(
                 mal_id=anime.mal_id,
                 title_ro=anime.title_ro,
                 poster_url=anime.poster_url,
-                poster_thumb_url=anime.poster_thumb_url,
                 release_year=anime.release_year,
+                status=status_enum,
             )
         )
         try:
@@ -110,14 +108,12 @@ async def update(engine: EngineDep, mal_id: int, anime: UpdateAnimeRequest) -> N
             db_anime.title_ro = anime.title_ro
         if anime.poster_url is not None:
             db_anime.poster_url = anime.poster_url
-        if anime.poster_thumb_url is not None:
-            db_anime.poster_thumb_url = anime.poster_thumb_url
         if anime.release_year is not None:
             db_anime.release_year = anime.release_year
-        if anime.is_blacklisted is not None:
-            db_anime.is_blacklisted = anime.is_blacklisted
-        if anime.is_finalized is not None:
-            db_anime.is_finalized = anime.is_finalized
+        if anime.status is not None:
+            if anime.status not in AnimeStatus.__members__:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid status")
+            db_anime.status = AnimeStatus[anime.status]
 
         await session.commit()
 

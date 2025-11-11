@@ -14,19 +14,19 @@ router = APIRouter(prefix="/levels")
 class CreateLevelRequest(BaseModel):
     song_id: int
     value: int
-    created_by: str
+    added_by: str
 
 
 class LevelResponse(BaseModel):
     id: int
     song_id: int
     value: int
-    created_by: str
+    added_by: str
 
 
 class UpdateLevelRequest(BaseModel):
     value: Optional[int] = None
-    created_by: Optional[str] = None
+    added_by: Optional[str] = None
 
 
 @router.get("", tags=["level"])
@@ -39,7 +39,7 @@ async def get_all(engine: EngineDep) -> list[LevelResponse]:
             id=level.id,
             song_id=level.song_id,
             value=level.value,
-            created_by=level.created_by,
+            added_by=level.added_by,
         )
         for level in levels
     ]
@@ -56,7 +56,7 @@ async def get(engine: EngineDep, level_id: int) -> LevelResponse:
         id=level.id,
         song_id=level.song_id,
         value=level.value,
-        created_by=level.created_by,
+        added_by=level.added_by,
     )
 
 
@@ -67,7 +67,7 @@ async def create(engine: EngineDep, level: CreateLevelRequest) -> None:
             Level(
                 song_id=level.song_id,
                 value=level.value,
-                created_by=level.created_by,
+                added_by=level.added_by,
             )
         )
         try:
@@ -92,8 +92,8 @@ async def update(engine: EngineDep, level_id: int, level: UpdateLevelRequest) ->
 
         if level.value is not None:
             db_level.value = level.value
-        if level.created_by is not None:
-            db_level.created_by = level.created_by
+        if level.added_by is not None:
+            db_level.added_by = level.added_by
 
         await session.commit()
 

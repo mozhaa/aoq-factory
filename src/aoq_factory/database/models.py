@@ -50,6 +50,12 @@ class BaseWithID(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
 
 
+class AnimeStatus(enum.Enum):
+    NORMAL = enum.auto()
+    FINALIZED = enum.auto()
+    BLACKLISTED = enum.auto()
+
+
 class Anime(Base):
     __tablename__ = "animes"
 
@@ -57,10 +63,8 @@ class Anime(Base):
 
     title_ro: Mapped[str]
     poster_url: Mapped[str]
-    poster_thumb_url: Mapped[str]
     release_year: Mapped[int]
-    is_blacklisted: Mapped[bool] = mapped_column(default=False)
-    is_finalized: Mapped[bool] = mapped_column(default=False)
+    status: Mapped[AnimeStatus] = mapped_column(default=AnimeStatus.NORMAL)
 
     infos: Mapped[List["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
     songs: Mapped[List["Song"]] = relationship(back_populates="anime", cascade="all, delete")
@@ -77,8 +81,8 @@ class AnimeInfo(BaseWithID):
 
 
 class Category(enum.Enum):
-    Opening = enum.auto()
-    Ending = enum.auto()
+    OP = enum.auto()
+    ED = enum.auto()
 
 
 class Song(BaseWithID):
@@ -97,14 +101,21 @@ class Song(BaseWithID):
     __table_args__ = (UniqueConstraint("anime_id", "category", "number"),)
 
 
+class SourceStatus(enum.Enum):
+    NORMAL = enum.auto()
+    INVALID = enum.auto()
+    DOWNLOADING = enum.auto()
+    DOWNLOADED = enum.auto()
+
+
 class Source(BaseWithID):
     __tablename__ = "sources"
 
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"))
     location: Mapped[dict[str, Any]]
     local_path: Mapped[Optional[str]]
-    is_downloading: Mapped[bool] = mapped_column(default=False)
-    is_invalid: Mapped[bool] = mapped_column(default=False)
+    status: Mapped[SourceStatus] = mapped_column(default=SourceStatus.NORMAL)
+    added_by: Mapped[str]
 
     song: Mapped[Song] = relationship(back_populates="sources")
     timings: Mapped[list["Timing"]] = relationship(back_populates="source", cascade="all, delete")
@@ -116,7 +127,7 @@ class Timing(BaseWithID):
     source_id: Mapped[int] = mapped_column(ForeignKey("sources.id"))
     guess_start: Mapped[float]
     reveal_start: Mapped[float]
-    created_by: Mapped[str]
+    added_by: Mapped[str]
 
     source: Mapped[Source] = relationship(back_populates="timings")
 
@@ -126,7 +137,7 @@ class Level(BaseWithID):
 
     song_id: Mapped[int] = mapped_column(ForeignKey("songs.id"))
     value: Mapped[int]
-    created_by: Mapped[str]
+    added_by: Mapped[str]
 
     song: Mapped[Song] = relationship(back_populates="levels")
 
