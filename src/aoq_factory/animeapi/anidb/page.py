@@ -1,8 +1,9 @@
 import re
 from typing import Self
 
-from hanyuu.database.main.models import Category, QItem
 from pyquery import PyQuery as pq
+
+from aoq_factory.database.models import Category, Song
 
 from .tools import get_page
 
@@ -18,11 +19,14 @@ class Page:
     @property
     def anidb_id(self) -> int:
         url = self.page('meta[name="anidb-url"]').eq(0).attr("data-anidb-url")
-        return int(re.search("aid=([0-9]+)", url).group(1))
+        match = re.search("aid=([0-9]+)", url)
+        if match is None:
+            raise RuntimeError(f"failed to get song anidb_id while parsing anidb page (anidb-url={url})")
+        return int(match.group(1))
 
     @property
-    def qitems(self) -> list[QItem]:
-        qitems = []
+    def qitems(self) -> list[Song]:
+        songs = []
         counters = {}
         anidb_ids = set()
         for song in self.page("table#songlist > tbody td.name.song"):
@@ -42,9 +46,9 @@ class Page:
                 .lower()
             )
             if category == "opening":
-                category = Category.Opening
+                category = Category.OP
             elif category == "ending":
-                category = Category.Ending
+                category = Category.ED
             else:
                 break
             number = counters[category] = counters.get(category, 0) + 1
@@ -55,8 +59,8 @@ class Page:
             except Exception:
                 artist = None
             anidb_ids.add(anidb_id)
-            qitems.append(
-                QItem(
+            songs.append(
+                Song(
                     anime_id=self.anidb_id,
                     category=category,
                     number=number,
@@ -64,4 +68,4 @@ class Page:
                     song_artist=artist,
                 )
             )
-        return qitems
+        return songs

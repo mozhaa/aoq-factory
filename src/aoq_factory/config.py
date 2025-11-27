@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     db_password: str
     db_host: str
     db_port: int
+    resources_dir: str
 
     model_config = SettingsConfigDict(env_file=None)
 
