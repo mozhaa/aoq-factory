@@ -162,9 +162,9 @@ class WorkerResult(BaseWithID):
     source_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sources.id"))
     status: Mapped[WorkerResultStatus]
 
-    anime: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
+    anime: Mapped[Optional[Anime]] = relationship(back_populates="worker_results")
     song: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
-    source: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
+    source: Mapped[Optional[Source]] = relationship(back_populates="worker_results")
 
     __table_args__ = (
         CheckConstraint(
