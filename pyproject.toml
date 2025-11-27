@@ -14,7 +14,7 @@ dependencies = [
     "orjson>=3.11.4",
     "pydantic-settings>=2.11.0",
     "pyquery>=2.0.1",
-    "sqlalchemy[asyncio]>=2.0.44",
+    "sqlalchemy[aiosqlite,asyncio]>=2.0.44",
 ]
 
 [dependency-groups]
