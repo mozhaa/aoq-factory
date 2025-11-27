@@ -31,8 +31,8 @@ def zlib_memoize(filename: str, key_creator: Callable[..., str], encoding: str =
     """Cache with unbounded storage and zlib compression"""
 
     def wrapper(user_function: Callable[..., Awaitable[Optional[str]]]) -> Callable[..., Awaitable[Optional[str]]]:
-        engine: AsyncEngine = None
-        async_session: async_sessionmaker[AsyncSession] = None
+        engine: Optional[AsyncEngine] = None
+        async_session: Optional[async_sessionmaker[AsyncSession]] = None
 
         @wraps(user_function)
         async def wrapped(*args, **kwargs) -> Optional[str]:
@@ -44,12 +44,12 @@ def zlib_memoize(filename: str, key_creator: Callable[..., str], encoding: str =
                     await conn.run_sync(Base.metadata.create_all)
 
             key = key_creator(*args, **kwargs)
-            async with async_session() as session:
+            async with async_session() as session:  # type: ignore
                 item = await session.scalar(select(Item).where(Item.key == key))
                 if item is not None:
                     return zlib.decompress(item.value).decode(encoding=encoding) if item.value is not None else None
             value = await user_function(*args, **kwargs)
-            async with async_session() as session:
+            async with async_session() as session:  # type: ignore
                 c_value = zlib.compress(value.encode(encoding=encoding)) if value is not None else null()
                 session.add(Item(key=key, value=c_value))
                 await session.commit()
