@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Any, ClassVar, List, Optional, Type
+from typing import Any, ClassVar, Optional
 
 import sqlalchemy.types as types
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint, func
@@ -32,7 +32,7 @@ class Base(AsyncAttrs, DeclarativeBase):
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
     metadata: ClassVar[MetaData] = MetaData(naming_convention=convention)
-    type_annotation_map: ClassVar[dict[Type, types.TypeEngine]] = {
+    type_annotation_map: ClassVar[dict[type, types.TypeEngine]] = {
         datetime: types.TIMESTAMP(timezone=True),
         list[str]: postgresql.ARRAY(String, dimensions=1, zero_indexes=True),
         list[list[str]]: postgresql.ARRAY(String, dimensions=2, zero_indexes=True),
@@ -56,18 +56,19 @@ class AnimeStatus(enum.Enum):
     BLACKLISTED = enum.auto()
 
 
-class Anime(Base):
+class Anime(BaseWithID):
     __tablename__ = "animes"
 
-    mal_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    mal_id: Mapped[int]
 
     title_ro: Mapped[str]
     poster_url: Mapped[str]
     release_year: Mapped[int]
     status: Mapped[AnimeStatus] = mapped_column(default=AnimeStatus.NORMAL)
 
-    infos: Mapped[List["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
-    songs: Mapped[List["Song"]] = relationship(back_populates="anime", cascade="all, delete")
+    infos: Mapped[list["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
+    songs: Mapped[list["Song"]] = relationship(back_populates="anime", cascade="all, delete")
+    worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="anime")
 
 
 class AnimeInfo(BaseWithID):
@@ -95,8 +96,9 @@ class Song(BaseWithID):
     song_name: Mapped[str] = mapped_column(default="")
 
     anime: Mapped[Anime] = relationship(back_populates="songs")
-    sources: Mapped[List["Source"]] = relationship(back_populates="song", cascade="all, delete")
-    levels: Mapped[List["Level"]] = relationship(back_populates="song", cascade="all, delete")
+    sources: Mapped[list["Source"]] = relationship(back_populates="song", cascade="all, delete")
+    levels: Mapped[list["Level"]] = relationship(back_populates="song", cascade="all, delete")
+    worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="song")
 
     __table_args__ = (UniqueConstraint("anime_id", "category", "number"),)
 
@@ -119,6 +121,7 @@ class Source(BaseWithID):
 
     song: Mapped[Song] = relationship(back_populates="sources")
     timings: Mapped[list["Timing"]] = relationship(back_populates="source", cascade="all, delete")
+    worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="source")
 
 
 class Timing(BaseWithID):
@@ -142,3 +145,34 @@ class Level(BaseWithID):
     song: Mapped[Song] = relationship(back_populates="levels")
 
     __table_args__ = (CheckConstraint("value >= 0 AND value <= 100", name="value_range"),)
+
+
+class WorkerResultStatus(enum.Enum):
+    SUCCESS = enum.auto()
+    INVALID_SOURCE = enum.auto()
+    TEMPORARY_ERROR = enum.auto()
+
+
+class WorkerResult(BaseWithID):
+    __tablename__ = "worker_results"
+
+    worker_name: Mapped[str]
+    anime_id: Mapped[Optional[str]] = mapped_column(ForeignKey("animes.id"))
+    song_id: Mapped[Optional[str]] = mapped_column(ForeignKey("songs.id"))
+    source_id: Mapped[Optional[str]] = mapped_column(ForeignKey("sources.id"))
+    status: Mapped[WorkerResultStatus]
+
+    anime: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
+    song: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
+    source: Mapped[Optional[Song]] = relationship(back_populates="worker_results")
+
+    __table_args__ = (
+        CheckConstraint(
+            """
+            (CASE WHEN anime_id IS NOT NULL THEN 1 ELSE 0 END +
+             CASE WHEN song_id IS NOT NULL THEN 1 ELSE 0 END +
+             CASE WHEN source_id IS NOT NULL THEN 1 ELSE 0 END) = 1
+            """,
+            name="only_one_reference",
+        ),
+    )
