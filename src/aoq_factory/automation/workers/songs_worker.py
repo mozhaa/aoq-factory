@@ -108,7 +108,7 @@ class SongsWorker:
         async with self.engine.async_session() as session:
             stmt = self._unprocessed_animes_stmt().limit(limit)
             animes = (await session.scalars(stmt)).all()
-            session.expunge_all(animes)
+            session.expunge_all()
         return animes
 
     async def _does_anime_need_processing(self, anime: Anime) -> bool:
