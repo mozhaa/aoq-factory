@@ -70,11 +70,13 @@ class Anime(BaseWithID):
     songs: Mapped[list["Song"]] = relationship(back_populates="anime", cascade="all, delete")
     worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="anime")
 
+    __table_args__ = (UniqueConstraint("mal_id"),)
+
 
 class AnimeInfo(BaseWithID):
     __tablename__ = "anime_infos"
 
-    anime_id: Mapped[Anime] = mapped_column(ForeignKey(column="animes.mal_id"))
+    anime_id: Mapped[Anime] = mapped_column(ForeignKey(column="animes.id"))
     source: Mapped[str]
     data: Mapped[dict[str, Any]]
 
@@ -89,7 +91,7 @@ class Category(enum.Enum):
 class Song(BaseWithID):
     __tablename__ = "songs"
 
-    anime_id: Mapped[int] = mapped_column(ForeignKey("animes.mal_id"))
+    anime_id: Mapped[int] = mapped_column(ForeignKey("animes.id"))
     category: Mapped[Category] = mapped_column(types.Enum(Category))
     number: Mapped[int]
     song_artist: Mapped[str] = mapped_column(default="")
