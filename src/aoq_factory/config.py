@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     db_host: str
     db_port: int
     resources_dir: str
+    anidb_request_interval: float
 
     model_config = SettingsConfigDict(env_file=None)
 
