@@ -17,7 +17,7 @@ class Page:
         return cls(await get_page(anidb_id), anidb_id)
 
     @property
-    def qitems(self) -> list[Song]:
+    def songs(self) -> list[Song]:
         songs = []
         counters = {}
         anidb_ids = set()
