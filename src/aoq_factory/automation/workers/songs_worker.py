@@ -46,7 +46,7 @@ class SongsWorker:
                     WorkerResult(
                         worker_name=self.worker_name,
                         anime_id=anime.id,
-                        status=WorkerResultStatus.INVALID_SOURCE,
+                        status=WorkerResultStatus.FAIL_INVALID,
                     )
                 )
                 await session.commit()

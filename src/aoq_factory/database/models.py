@@ -149,8 +149,8 @@ class Level(BaseWithID):
 
 class WorkerResultStatus(enum.Enum):
     SUCCESS = enum.auto()
-    INVALID_SOURCE = enum.auto()
-    TEMPORARY_ERROR = enum.auto()
+    FAIL_INVALID = enum.auto()
+    FAIL_TEMPORARY = enum.auto()
 
 
 class WorkerResult(BaseWithID):
