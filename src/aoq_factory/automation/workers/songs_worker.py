@@ -42,7 +42,7 @@ class SongsWorker:
             async with self.engine.async_session() as session:
                 session.add(
                     WorkerResult(
-                        worker_name=self.worker_name,
+                        worker_name=self.name,
                         anime_id=anime.id,
                         status=WorkerResultStatus.FAIL_INVALID,
                     )
@@ -68,7 +68,7 @@ class SongsWorker:
             session.add_all(list(songs_to_add_dict.values()))
             session.add(
                 WorkerResult(
-                    worker_name=self.worker_name,
+                    worker_name=self.name,
                     anime_id=anime.id,
                     status=WorkerResultStatus.SUCCESS,
                 )
