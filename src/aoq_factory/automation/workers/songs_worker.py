@@ -26,7 +26,7 @@ class SongsWorker:
             animes = await self._get_unprocessed_animes(self.batch_size)
             logger.info(f"found {len(animes)} unprocessed animes: {[anime.title_ro for anime in animes]}")
             for anime in animes:
-                logger.info(f"processing {anime.title_ro} (id={anime.id}, mal_id={anime.mal_id})")
+                logger.info(f"processing {anime.title_ro} (id={anime.id})")
                 await self._process_anime(anime)
             await asyncio.sleep(self.interval)
 

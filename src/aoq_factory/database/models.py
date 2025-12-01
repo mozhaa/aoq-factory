@@ -59,18 +59,12 @@ class AnimeStatus(enum.Enum):
 class Anime(BaseWithID):
     __tablename__ = "animes"
 
-    mal_id: Mapped[int]
-
     title_ro: Mapped[str]
-    poster_url: Mapped[str]
-    release_year: Mapped[int]
     status: Mapped[AnimeStatus] = mapped_column(default=AnimeStatus.NORMAL)
 
     infos: Mapped[list["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
     songs: Mapped[list["Song"]] = relationship(back_populates="anime", cascade="all, delete")
     worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="anime")
-
-    __table_args__ = (UniqueConstraint("mal_id"),)
 
 
 class AnimeInfo(BaseWithID):
