@@ -53,7 +53,6 @@ class Page:
             anidb_ids.add(anidb_id)
             songs.append(
                 Song(
-                    anime_id=self.anidb_id,
                     category=category,
                     number=number,
                     song_name=name,

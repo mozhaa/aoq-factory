@@ -82,7 +82,10 @@ class SongsWorker:
             )
             if anidb_id is None:
                 raise RuntimeError(f"can't find anidb_id for anime with id={anime.id}")
-        return (await anidb.Page.from_id(anidb_id)).songs
+        songs = (await anidb.Page.from_id(anidb_id)).songs
+        for song in songs:
+            song.anime_id = anime.id
+        return songs
 
     def _is_anime_processed_clause(self) -> ColumnElement:
         processed_anime_subquery = (
