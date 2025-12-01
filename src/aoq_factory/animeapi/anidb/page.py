@@ -1,4 +1,3 @@
-import re
 from typing import Self
 
 from pyquery import PyQuery as pq
@@ -9,20 +8,13 @@ from .tools import get_page
 
 
 class Page:
-    def __init__(self, html: str) -> None:
+    def __init__(self, html: str, anidb_id: int) -> None:
         self.page = pq(html)
+        self.anidb_id = anidb_id
 
     @classmethod
     async def from_id(cls, anidb_id: int) -> Self:
-        return cls(await get_page(anidb_id))
-
-    @property
-    def anidb_id(self) -> int:
-        url = self.page('meta[name="anidb-url"]').eq(0).attr("data-anidb-url")
-        match = re.search("aid=([0-9]+)", url)
-        if match is None:
-            raise RuntimeError(f"failed to get song anidb_id while parsing anidb page (anidb-url={url})")
-        return int(match.group(1))
+        return cls(await get_page(anidb_id), anidb_id)
 
     @property
     def qitems(self) -> list[Song]:
