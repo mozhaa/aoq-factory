@@ -11,6 +11,9 @@ class Settings(BaseSettings):
     db_port: int
     resources_dir: str
     anidb_request_interval: float
+    idsmoe_api_key: str
+    idsmoe_rate_limiter_max_rate: float
+    idsmoe_rate_limiter_time_period: float
 
     model_config = SettingsConfigDict(env_file=None)
 
