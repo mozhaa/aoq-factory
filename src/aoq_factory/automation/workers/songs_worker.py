@@ -1,11 +1,11 @@
 import asyncio
 import logging
 
-from sqlalchemy import ColumnElement, Select, func, select
+from sqlalchemy import ColumnElement, Select, and_, func, select
 
 from aoq_factory.animeapi import anidb
 from aoq_factory.database.connection import Engine
-from aoq_factory.database.models import Anime, AnimeStatus, Song, WorkerResult, WorkerResultStatus
+from aoq_factory.database.models import Anime, AnimeStatus, IDMapping, Platform, Song, WorkerResult, WorkerResultStatus
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,13 @@ class SongsWorker:
             await session.commit()
 
     async def get_songs(self, anime: Anime) -> list[Song]:
-        return (await anidb.Page.from_id(anime.id)).songs
+        async with self.engine.async_session() as session:
+            anidb_id = await session.scalar(
+                select(IDMapping.value).where(IDMapping.anime_id == anime.id, IDMapping.platform == Platform.ANIDB)
+            )
+            if anidb_id is None:
+                raise RuntimeError(f"can't find anidb_id for anime with id={anime.id}")
+        return (await anidb.Page.from_id(anidb_id)).songs
 
     def _is_anime_processed_clause(self) -> ColumnElement:
         processed_anime_subquery = (
@@ -92,7 +98,10 @@ class SongsWorker:
         return Anime.id.not_in(processed_anime_subquery)
 
     def _does_anime_need_processing_clause(self) -> ColumnElement:
-        return Anime.status == AnimeStatus.NORMAL
+        anime_with_anidb_id_subquery = (
+            select(IDMapping.anime_id).where(IDMapping.platform == Platform.ANIDB).scalar_subquery()
+        )
+        return and_(Anime.status == AnimeStatus.NORMAL, Anime.id.in_(anime_with_anidb_id_subquery))
 
     def _unprocessed_animes_stmt(self) -> Select:
         return (
