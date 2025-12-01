@@ -1,7 +1,6 @@
 import asyncio
 import logging
 
-from aiolimiter import AsyncLimiter
 from sqlalchemy import ColumnElement, Select, func, select
 
 from aoq_factory.animeapi import anidb
@@ -14,9 +13,8 @@ logger = logging.getLogger(__name__)
 class SongsWorker:
     name: str = "songs_worker"
 
-    def __init__(self, engine: Engine, ratelimiter: AsyncLimiter, batch_size: int, interval: float) -> None:
+    def __init__(self, engine: Engine, batch_size: int, interval: float) -> None:
         self.engine = engine
-        self.ratelimiter = ratelimiter
         self.batch_size = batch_size
         self.interval = interval
 
@@ -78,8 +76,7 @@ class SongsWorker:
             await session.commit()
 
     async def get_songs(self, anime: Anime) -> list[Song]:
-        async with self.ratelimiter:
-            return (await anidb.Page.from_id(anime.id)).songs
+        return (await anidb.Page.from_id(anime.id)).songs
 
     def _is_anime_processed_clause(self) -> ColumnElement:
         processed_anime_subquery = (
