@@ -19,7 +19,7 @@ class SongsWorker:
         self.interval = interval
 
     def _transform_songs_to_dict(self, songs: list[Song]) -> dict[str, Song]:
-        return {f"{song.category} {song.number}" for song in songs}
+        return {f"{song.category} {song.number}": song for song in songs}
 
     async def run(self) -> None:
         while True:
