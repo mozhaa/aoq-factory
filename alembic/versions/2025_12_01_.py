@@ -32,6 +32,18 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id", name=op.f("pk_animes")),
     )
     op.create_table(
+        "id_mappings",
+        sa.Column("anime_id", sa.Integer(), nullable=False),
+        sa.Column("value", sa.Integer(), nullable=False),
+        sa.Column("platform", sa.Enum("MAL", "ANIDB", name="platform"), nullable=False),
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column("created_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.TIMESTAMP(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["anime_id"], ["animes.id"], name=op.f("fk_id_mappings_anime_id_animes")),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_id_mappings")),
+        sa.UniqueConstraint("value", "platform", name=op.f("uq_id_mappings_value_platform")),
+    )
+    op.create_table(
         "anime_infos",
         sa.Column("anime_id", sa.Integer(), nullable=False),
         sa.Column("source", sa.String(), nullable=False),
@@ -132,9 +144,11 @@ def downgrade() -> None:
     op.drop_table("levels")
     op.drop_table("songs")
     op.drop_table("anime_infos")
+    op.drop_table("id_mappings")
     op.drop_table("animes")
     sa.Enum(name="category").drop(op.get_bind())
     sa.Enum(name="animestatus").drop(op.get_bind())
     sa.Enum(name="sourcestatus").drop(op.get_bind())
     sa.Enum(name="workerresultstatus").drop(op.get_bind())
+    sa.Enum(name="platform").drop(op.get_bind())
     # ### end Alembic commands ###

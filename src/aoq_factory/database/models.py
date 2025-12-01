@@ -64,7 +64,26 @@ class Anime(BaseWithID):
 
     infos: Mapped[list["AnimeInfo"]] = relationship(back_populates="anime", cascade="all, delete")
     songs: Mapped[list["Song"]] = relationship(back_populates="anime", cascade="all, delete")
+    ids: Mapped[list["IDMapping"]] = relationship(back_populates="anime", cascade="all, delete")
+
     worker_results: Mapped[list["WorkerResult"]] = relationship(back_populates="anime")
+
+
+class Platform(enum.Enum):
+    MAL = enum.auto()
+    ANIDB = enum.auto()
+
+
+class IDMapping(BaseWithID):
+    __tablename__ = "id_mappings"
+
+    anime_id: Mapped[Anime] = mapped_column(ForeignKey(column="animes.id"))
+    value: Mapped[int]
+    platform: Mapped[Platform]
+
+    anime: Mapped[Anime] = relationship(back_populates="ids")
+
+    __table_args__ = (UniqueConstraint("value", "platform"),)
 
 
 class AnimeInfo(BaseWithID):
