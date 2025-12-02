@@ -8,29 +8,83 @@ Anime Opening Quiz Factory is an automated system designed to create "Guess the 
 
 The system uses a PostgreSQL database with the following core tables:
 
-- **animes**: Stores anime information with MAL ID as primary key, titles, poster URLs, release year, and moderation flags
-- **anime_infos**: Contains additional anime metadata from various sources, linked to animes
-- **songs**: Represents openings and endings with category (OP/ED), numbering, and song metadata, linked to animes
-- **sources**: Manages video sources for songs including download locations and status, linked to songs
-- **timings**: Stores guess and reveal timestamps for quiz segments, linked to sources
-- **levels**: Contains difficulty assessments for songs with values and attribution, linked to songs
+- **animes**: Core table storing anime entries. Each anime has a unique auto-incrementing ID, a Romanian title (`title_ro`), and a status (`status`) which can be NORMAL, FINALIZED (to prevent song list modifications), or BLACKLISTED (to exclude from all processing).
+- **id_mappings**: Maps anime entries to external platform IDs. Stores the ID value (`value`) and the platform (`platform`), such as MAL or AniDB, linking back to a specific anime.
+- **anime_infos**: A flexible store for additional metadata about an anime, sourced from various external APIs. The `data` field is a JSON object, and each entry is linked to an anime.
+- **songs**: Represents individual opening (OP) or ending (ED) songs for an anime. Includes the category, sequence number, song name, and artist. Each song is linked to one anime.
+- **sources**: Manages video sources for a song. Stores the source location (e.g., URL, torrent info in a JSON `location` field), the `local_path` after download, and a `status` (NORMAL, INVALID, DOWNLOADING, DOWNLOADED). Each source is linked to one song.
+- **timings**: Stores the precise timestamps for a quiz segment derived from a video source. Includes `guess_start` and `reveal_start` times. Each timing entry is linked to one source.
+- **levels**: Stores difficulty level assessments for a song. The `value` is an integer from 0 to 100. Each level is linked to one song.
+- **worker_results**: Logs the results of automated worker tasks. Tracks the `worker_name`, the target entity (anime, song, or source), and the outcome `status` (SUCCESS, FAIL_INVALID, FAIL_TEMPORARY).
 
 ### Database Relationships Schema
 
 ```mermaid
-graph TD
-    animes
-    anime_infos
-    songs
-    sources
-    timings
-    levels
+erDiagram
+    animes {
+        int id PK
+        str title_ro
+        enum status
+    }
+    id_mappings {
+        int id PK
+        int anime_id FK
+        int value
+        enum platform
+    }
+    anime_infos {
+        int id PK
+        int anime_id FK
+        str source
+        json data
+    }
+    songs {
+        int id PK
+        int anime_id FK
+        enum category
+        int number
+        str song_artist
+        str song_name
+    }
+    sources {
+        int id PK
+        int song_id FK
+        json location
+        str local_path
+        enum status
+        str added_by
+    }
+    timings {
+        int id PK
+        int source_id FK
+        float guess_start
+        float reveal_start
+        str added_by
+    }
+    levels {
+        int id PK
+        int song_id FK
+        int value
+        str added_by
+    }
+    worker_results {
+        int id PK
+        str worker_name
+        int anime_id FK
+        int song_id FK
+        int source_id FK
+        enum status
+    }
 
-    animes --> anime_infos
-    animes --> songs
-    songs --> sources
-    sources --> timings
-    songs --> levels
+    animes ||--o{ id_mappings : "has"
+    animes ||--o{ anime_infos : "has"
+    animes ||--o{ songs : "has"
+    animes ||--o{ worker_results : "target of"
+    songs ||--o{ sources : "has"
+    songs ||--o{ levels : "has"
+    songs ||--o{ worker_results : "target of"
+    sources ||--o{ timings : "has"
+    sources ||--o{ worker_results : "target of"
 ```
 
 
