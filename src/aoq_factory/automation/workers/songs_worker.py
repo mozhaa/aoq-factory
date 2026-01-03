@@ -85,7 +85,7 @@ class SongsWorker:
                 raise RuntimeError(f"can't find anidb_id for anime with id={anime.id}")
         async with AniDBScraper() as anidb:
             anidb_songs = await anidb.get_songs(anidb_id)
-        songs = list(map(anidb_song_to_song, anidb_songs))
+        songs = list(filter(lambda x: x is not None, map(anidb_song_to_song, anidb_songs)))
         for song in songs:
             song.anime_id = anime.id
         return songs

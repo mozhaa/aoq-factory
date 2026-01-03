@@ -1,19 +1,17 @@
+from typing import Optional
+
 from anime_utils.clients.anidb.types import AniDBSong
 
 from aoq_factory.database.models import Category, Song
 
 
-def anidb_song_to_song(anidb_song: AniDBSong) -> Song:
+def anidb_song_to_song(anidb_song: AniDBSong) -> Optional[Song]:
     song = Song()
 
-    category = anidb_song["category"].lower()
-    if "op" in category:
-        song.category = Category.OP
-    elif "ed" in category:
-        song.category = Category.ED
-    else:
-        raise ValueError(f"invalid category: {category}")
-
+    category = {"opening": Category.OP, "ending": Category.ED}.get(anidb_song["category"], None)
+    if category is None:
+        return None
+    song.category = category
     song.number = anidb_song["number"]
     song.song_name = anidb_song["song_name"]
 
