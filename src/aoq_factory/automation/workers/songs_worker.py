@@ -1,10 +1,11 @@
 import asyncio
 import logging
 
+from anime_utils.clients.anidb import AniDBScraper
 from sqlalchemy import ColumnElement, Select, and_, func, select
 
-from aoq_factory.animeapi import anidb
 from aoq_factory.database.connection import Engine
+from aoq_factory.database.convertion import anidb_song_to_song
 from aoq_factory.database.models import Anime, AnimeStatus, IDMapping, Platform, Song, WorkerResult, WorkerResultStatus
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class SongsWorker:
 
         async with self.engine.async_session() as session:
             # filter out existings songs
-            existings_songs = await session.scalars(select(Song).where(Song.anime_id == anime.id))
+            existings_songs: list[Song] = await session.scalars(select(Song).where(Song.anime_id == anime.id))  # type: ignore
 
             existing_songs_dict = self._transform_songs_to_dict(existings_songs)
             songs_dict = self._transform_songs_to_dict(songs)
@@ -82,7 +83,9 @@ class SongsWorker:
             )
             if anidb_id is None:
                 raise RuntimeError(f"can't find anidb_id for anime with id={anime.id}")
-        songs = (await anidb.Page.from_id(anidb_id)).songs
+        async with AniDBScraper() as anidb:
+            anidb_songs = await anidb.get_songs(anidb_id)
+        songs = list(map(anidb_song_to_song, anidb_songs))
         for song in songs:
             song.anime_id = anime.id
         return songs
@@ -116,7 +119,7 @@ class SongsWorker:
     async def _get_unprocessed_animes(self, limit: int) -> list[Anime]:
         async with self.engine.async_session() as session:
             stmt = self._unprocessed_animes_stmt().limit(limit)
-            animes = (await session.scalars(stmt)).all()
+            animes: list[Anime] = (await session.scalars(stmt)).all()  # type: ignore
             session.expunge_all()
         return animes
 
@@ -128,4 +131,4 @@ class SongsWorker:
                 .where(self._does_anime_need_processing_clause(), Anime.id == anime.id)
             )
             count = await session.scalar(stmt)
-            return count > 0
+            return count > 0 if count is not None else False
